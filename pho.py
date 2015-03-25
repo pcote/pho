@@ -83,23 +83,32 @@ def make_soup(fname):
 
 def soup_line(dir_name, *exclusions):
     """
-    Make pairs of soups and the names of the files they came from.
-    :param dir_name: The name of the directory that has the html files needed.
-    :param exclusions: Any exclusions that should NOT be considered within that directory.
-    :return: A tuple containing the soup object and the name of the file used to create it.
+     Pair up soups with the files they're based on.
+    :param dir_name: Directory with the html files needed.
+    :param exclusions: Don't include these files.
+    :return: A tuple of soup file name pairs.
     """
     import os
 
     from collections import namedtuple
     SoupFilePair = namedtuple("SoupFileName", ["soup", "file_name"])
-    is_valid_file = lambda fpath: os.path.isfile(fpath) and fpath.endswith(".html") and fpath not in exclusions
+
+    def is_valid_file(fpath):
+        if os.path.isfile(fpath):
+            if fpath.endswith(".html"):
+                if fpath not in exclusions:
+                    return True
+        else:
+            return False
+
 
     for fname in os.listdir(dir_name):
         file_path = "{0}/{1}".format(dir_name, fname)
         if is_valid_file(file_path):
-            file_ob = open(file_path, "rt", encoding="utf-8")
-            soup = BeautifulSoup(file_ob.read().strip())
-            yield SoupFilePair(soup, fname)
+            with open(file_path, "rt", encoding="utf-8") as file_ob:
+                soup = BeautifulSoup(file_ob.read().strip())
+                yield SoupFilePair(soup, fname)
+
 
 if __name__ == '__main__':
     ###########################
